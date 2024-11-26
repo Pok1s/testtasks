@@ -1,12 +1,18 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "flask-app:latest"  
+        DOCKER_IMAGE = "flask-app:latest"
     }
     stages {
         stage('Clone repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/Pok1s/testtasks.git'
+            }
+        }
+        stage('Debug Git') {
+            steps {
+                sh 'git --version'
+                sh 'git ls-remote https://github.com/Pok1s/testtasks.git'
             }
         }
         stage('Build Docker Image') {
@@ -36,6 +42,14 @@ pipeline {
                     docker rm flask-app || true
                 '''
             }
+        }
+    }
+    post {
+        always {
+            sh '''
+                docker stop flask-app || true
+                docker rm flask-app || true
+            '''
         }
     }
 }
