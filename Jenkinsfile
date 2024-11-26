@@ -4,25 +4,34 @@ pipeline {
         DOCKER_IMAGE = "flask-app:latest"
     }
     stages {
-        stage('Clone repository') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Pok1s/testtasks.git'
-            }
-        }
         stage('Debug Git') {
             steps {
                 sh 'git --version'
-                sh 'git ls-remote https://github.com/Pok1s/testtasks.git'
+                sh 'git ls-remote https://github.com/Pok1s/testtasks'
+            }
+        }
+        stage('Clone repository') {
+            steps {
+                sh '''
+                    git clone https://github.com/Pok1s/testtasks
+                    cd testtasks
+                    ls -la
+                '''
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${DOCKER_IMAGE} .'
+                sh '''
+                    cd testtasks
+                    docker build -t ${DOCKER_IMAGE} .
+                '''
             }
         }
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 5001:5001 --name flask-app ${DOCKER_IMAGE}'
+                sh '''
+                    docker run -d -p 5001:5001 --name flask-app ${DOCKER_IMAGE}
+                '''
             }
         }
         stage('Test Application') {
@@ -49,6 +58,7 @@ pipeline {
             sh '''
                 docker stop flask-app || true
                 docker rm flask-app || true
+                rm -rf testtasks
             '''
         }
     }
